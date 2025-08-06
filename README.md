@@ -1,60 +1,137 @@
-# Servlet & JSP
+# Java Web Development with Servlets 
+---
 
-## 1. What Is a Servlet?  
-A Java-based **dynamic web component** implemented as a `.java` class.  
-Runs inside a web application server (WAS) to handle HTTP requests and responses.  
-Lifecycle:  
-- `init()` → `service()` → `destroy()`
+## 1. Overview of Servlets and Business Logic
 
-## 2. JSP (Jakarta Server Pages)  
-A view technology that embeds Java code within HTML.  
-At compile time, JSP → Servlet → `.class`, then executed by the servlet engine.
+* Learn how a Servlet processes web requests and handles **business logic** by interacting with a database.
+* Examples: user registration, login, product ordering, etc., all require database interaction.
+* Structure involves:
 
-## 3. Servlet vs. JSP  
+  * DAO (Data Access Object)
+  * VO (Value Object or DTO)
+  * SQL processing using JDBC
 
-| Criterion       | Servlet                                  | JSP                                           |
-|-----------------|------------------------------------------|-----------------------------------------------|
-| Primary Role    | Controller / Model                       | View                                          |
-| Coding Style    | Java code with embedded HTML             | HTML with embedded Java or custom tags (JSTL) |
-| Strengths       | Performance, portability, easy MVC use   | Easy UI authoring, maintainability            |
-| Weaknesses      | Cumbersome for page layout               | Unsuitable for heavy logic                    |
+---
 
-## 4. MVC (Model-View-Controller) Pattern  
-- **Controller (Servlet)**: Routes requests and controls flow  
-- **Model (DAO / Service / VO)**: Business logic and database access  
-- **View (JSP / JSTL / EL)**: Renders the response  
-Layered separation supports maintainability and team collaboration.
+## 2. JDBC Integration and Processing Flow
 
-## 5. Servlet API Class Hierarchy  
+* Entire process flow:
+
+  1. Web browser sends a request.
+  2. Servlet processes the request.
+  3. Calls DAO.
+  4. Executes SQL query.
+  5. Stores results in an ArrayList.
+  6. Outputs results as HTML.
+
+* Sample table: `t_member`
+
+  * Columns: `id`, `pwd`, `name`, `email`, `joinDate`
+
+---
+
+## 3. Using PreparedStatement for SQL
+
+* Reuses compiled SQL for better performance.
+* Use `?` placeholders for parameter binding → easier maintenance.
+
+```java
+String query = "SELECT * FROM t_member WHERE id = ?";
+PreparedStatement pstmt = conn.prepareStatement(query);
+pstmt.setString(1, id);
+ResultSet rs = pstmt.executeQuery();
 ```
-Servlet (interface)
- └─ GenericServlet (abstract)
-     └─ HttpServlet
-```
-Key methods in `HttpServlet`: `doGet()`, `doPost()`, `doPut()`, etc.
 
-## 6. Key Features  
-- **Servlet Mapping**: `@WebServlet("/*")` or `` in `web.xml`  
-- **Filters**: Pre/post processing for encoding, authentication, logging  
-- **Listeners**: Detect lifecycle events for context, session, request  
-- **Session & Cookies**: Maintain user state for login, carts, etc.  
-- **JSTL & EL**: Removes scriptlets from JSP for conditionals, loops, i18n, formatting  
+---
 
-## 7. Model2 (Modern MVC) Board Example Flow  
-```
-Browser → Controller (/board/list.do)
-        → Service → DAO (SQL) → DB
-        ← View (JSP) ← Model (List)
-```
-Business operations (create, update, delete, replies, paging) are encapsulated at the service layer.
+## 4. Connection Pool and JNDI
 
-## 8. Servlet Lifecycle Overview  
+* Problem: Connecting/disconnecting to DB on every request degrades performance.
+* Solution: Use a connection pool to reuse DB connections.
+* Example configuration (`context.xml` in Tomcat):
+
+```xml
+<Resource name="jdbc/oracle" 
+          auth="Container" 
+          type="javax.sql.DataSource"
+          maxActive="20"
+          maxIdle="10"
+          maxWait="10000"
+          driverClassName="oracle.jdbc.OracleDriver"
+          url="jdbc:oracle:thin:@localhost:1521:xe"
+          username="scott" 
+          password="tiger"/>
 ```
-Class load → Instance creation
-      ↓
-   init()     (once)
-      ↓
-   service()  (per request)
-      ↓
-   destroy()  (on unload)
+
+* Using connection pool in DAO:
+
+```java
+Context ctx = new InitialContext();
+DataSource ds = (DataSource) ctx.lookup("java:comp/env/jdbc/oracle");
+Connection conn = ds.getConnection();
+```
+
+---
+
+## 5. Implementing Member Registration (Insert)
+
+* Input form: `memberForm.html`
+
+  * Fields: `id`, `pwd`, `name`, `email`
+  * Method: POST
+  * Hidden field: `command=addMember`
+
+```html
+<form method="post" action="/member3">
+  <input type="hidden" name="command" value="addMember">
+  <!-- Other input fields -->
+</form>
+```
+
+* Servlet-side logic:
+
+```java
+if (command.equals("addMember")) {
+    String id = request.getParameter("id");
+    MemberVO memberVO = new MemberVO(id, ...);
+    memberDAO.addMember(memberVO);
+}
+```
+
+* DAO logic:
+
+```java
+String query = "INSERT INTO t_member (id, pwd, name, email) VALUES (?, ?, ?, ?)";
+PreparedStatement pstmt = conn.prepareStatement(query);
+pstmt.setString(1, member.getId());
+...
+pstmt.executeUpdate();
+```
+
+---
+
+## 6. Implementing Member Deletion (Delete)
+
+* Delete link example:
+
+```html
+<a href="/member3?command=delMember&id=user1">Delete</a>
+```
+
+* Servlet logic:
+
+```java
+if (command.equals("delMember")) {
+    String id = request.getParameter("id");
+    memberDAO.delMember(id);
+}
+```
+
+* DAO logic:
+
+```java
+String query = "DELETE FROM t_member WHERE id=?";
+PreparedStatement pstmt = conn.prepareStatement(query);
+pstmt.setString(1, id);
+pstmt.executeUpdate();
 ```
