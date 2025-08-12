@@ -1,4 +1,4 @@
-# Java Web Development with Servlets 
+# Servlet Business Logic Processing
 ---
 
 ## 1. Overview of Servlets and Business Logic
