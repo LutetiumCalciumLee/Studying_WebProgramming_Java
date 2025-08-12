@@ -1,60 +1,98 @@
-# Servlet & JSP
+# Using the Servlet Extension API
 
-## 1. What Is a Servlet?  
-A Java-based **dynamic web component** implemented as a `.java` class.  
-Runs inside a web application server (WAS) to handle HTTP requests and responses.  
-Lifecycle:  
-- `init()` → `service()` → `destroy()`
+## 1. Servlet Basics
 
-## 2. JSP (Jakarta Server Pages)  
-A view technology that embeds Java code within HTML.  
-At compile time, JSP → Servlet → `.class`, then executed by the servlet engine.
+* A **Servlet** is a Java-based server-side program that generates **dynamic web content**.
+* Runs only on the **server**, inside a **Servlet Container** (e.g., Tomcat).
+* High **platform independence**, **reusability**, and **security**.
+* Forms the basis of JSP, Spring, and other Java web frameworks.
 
-## 3. Servlet vs. JSP  
+---
 
-| Criterion       | Servlet                                  | JSP                                           |
-|-----------------|------------------------------------------|-----------------------------------------------|
-| Primary Role    | Controller / Model                       | View                                          |
-| Coding Style    | Java code with embedded HTML             | HTML with embedded Java or custom tags (JSTL) |
-| Strengths       | Performance, portability, easy MVC use   | Easy UI authoring, maintainability            |
-| Weaknesses      | Cumbersome for page layout               | Unsuitable for heavy logic                    |
+## 2. Web Application Request Flow
 
-## 4. MVC (Model-View-Controller) Pattern  
-- **Controller (Servlet)**: Routes requests and controls flow  
-- **Model (DAO / Service / VO)**: Business logic and database access  
-- **View (JSP / JSTL / EL)**: Renders the response  
-Layered separation supports maintainability and team collaboration.
+1. **Client (Browser)** sends an HTTP request.
+2. **Web Server** forwards it to the **Servlet Container**.
+3. Container finds the matching servlet, calls `service()` method.
+4. Servlet processes the request and returns a **response** to the client.
+5. For dynamic pages, often interacts with a **database** before responding.
 
-## 5. Servlet API Class Hierarchy  
-```
-Servlet (interface)
- └─ GenericServlet (abstract)
-     └─ HttpServlet
-```
-Key methods in `HttpServlet`: `doGet()`, `doPost()`, `doPut()`, etc.
+---
 
-## 6. Key Features  
-- **Servlet Mapping**: `@WebServlet("/*")` or `` in `web.xml`  
-- **Filters**: Pre/post processing for encoding, authentication, logging  
-- **Listeners**: Detect lifecycle events for context, session, request  
-- **Session & Cookies**: Maintain user state for login, carts, etc.  
-- **JSTL & EL**: Removes scriptlets from JSP for conditionals, loops, i18n, formatting  
+## 3. Servlet Lifecycle
 
-## 7. Model2 (Modern MVC) Board Example Flow  
-```
-Browser → Controller (/board/list.do)
-        → Service → DAO (SQL) → DB
-        ← View (JSP) ← Model (List)
-```
-Business operations (create, update, delete, replies, paging) are encapsulated at the service layer.
+1. **Loading & Instantiation** – Servlet class loaded into memory.
+2. **Initialization (`init()`)** – Runs once when the servlet is first loaded.
+3. **Request Handling (`service()`)** – Called for each client request.
+4. **Destruction (`destroy()`)** – Runs once before the servlet is unloaded.
 
-## 8. Servlet Lifecycle Overview  
-```
-Class load → Instance creation
-      ↓
-   init()     (once)
-      ↓
-   service()  (per request)
-      ↓
-   destroy()  (on unload)
-```
+---
+
+## 4. Request Dispatching
+
+### `forward()`
+
+* Transfers request **within the server** to another resource (JSP, HTML, or another servlet).
+* The browser **URL does not change**.
+* The same `request` and `response` objects are passed along.
+* Suitable when you want to keep request data intact.
+
+### `sendRedirect()`
+
+* Instructs browser to send a **new request** to a different URL.
+* **URL changes** in the browser.
+* New request/response objects are created.
+* Suitable for redirecting after form submissions or to an external site.
+
+---
+
+## 5. Servlet Context vs Servlet Config
+
+### `ServletContext`
+
+* **Application-wide scope** (shared across all servlets).
+* Stores initialization parameters from `web.xml`.
+* Used for shared data, caching, or application-level configuration.
+
+### `ServletConfig`
+
+* **Servlet-specific scope** (parameters for one servlet only).
+* Stores initialization parameters from `web.xml` or annotations for that servlet.
+
+---
+
+## 6. Session & Request Attributes
+
+* **Request Scope** – Data lasts for a single request/forward chain.
+* **Session Scope** – Data lasts until the user session expires or is invalidated.
+* **Application Scope** – Data shared for the lifetime of the application.
+
+---
+
+## 7. `loadOnStartup`
+
+* Pre-loads and initializes a servlet **when the application starts**, not on the first request.
+* **Improves first-request speed** for resource-heavy initialization.
+* Smaller numbers = higher priority during startup.
+* Can be set via:
+
+  ```java
+  @WebServlet(loadOnStartup=1)
+  ```
+
+  or in `web.xml`:
+
+  ```xml
+  <load-on-startup>1</load-on-startup>
+  ```
+* Common use: preloading menus, cache data, DB connections.
+
+---
+
+## 8. Best Practices
+
+* Use `forward()` for internal navigation when preserving request data.
+* Use `sendRedirect()` for new requests or external URLs.
+* Store common data in `ServletContext`, servlet-specific configs in `ServletConfig`.
+* Use `loadOnStartup` for servlets that need to prepare resources at startup.
+* Always release resources in `destroy()` to avoid memory leaks.
