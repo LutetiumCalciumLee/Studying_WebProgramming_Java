@@ -1,60 +1,50 @@
-# Servlet & JSP
+# Chapter 20: Spring AOP Features
 
-## 1. What Is a Servlet?  
-A Java-based **dynamic web component** implemented as a `.java` class.  
-Runs inside a web application server (WAS) to handle HTTP requests and responses.  
-Lifecycle:  
-- `init()` → `service()` → `destroy()`
+## 1. Emergence of Aspect-Oriented Programming (AOP)
 
-## 2. JSP (Jakarta Server Pages)  
-A view technology that embeds Java code within HTML.  
-At compile time, JSP → Servlet → `.class`, then executed by the servlet engine.
+- Problems with the traditional approach:
+  - Every time implementing a core feature (e.g., member level upgrade), developers embed auxiliary features such as logging, security, and transactions directly inside methods.
+  - As the application grows, duplicated code increases, source code becomes complex, and maintenance becomes difficult.
 
-## 3. Servlet vs. JSP  
+- Solution idea:
+  - Use AOP to separate core features from cross-cutting concerns (logging/security/transactions) and apply them declaratively at required join points.
+  - As a result, cohesion increases, duplication decreases, and maintainability improves.
 
-| Criterion       | Servlet                                  | JSP                                           |
-|-----------------|------------------------------------------|-----------------------------------------------|
-| Primary Role    | Controller / Model                       | View                                          |
-| Coding Style    | Java code with embedded HTML             | HTML with embedded Java or custom tags (JSTL) |
-| Strengths       | Performance, portability, easy MVC use   | Easy UI authoring, maintainability            |
-| Weaknesses      | Cumbersome for page layout               | Unsuitable for heavy logic                    |
+## 2. Using AOP in Spring
 
-## 4. MVC (Model-View-Controller) Pattern  
-- **Controller (Servlet)**: Routes requests and controls flow  
-- **Model (DAO / Service / VO)**: Business logic and database access  
-- **View (JSP / JSTL / EL)**: Renders the response  
-Layered separation supports maintainability and team collaboration.
+### Key terminology (concepts)
+- Target: The actual business object (class/method) to which auxiliary features are applied.
+- Advice: The auxiliary logic to apply (e.g., logging, transaction).
+- Pointcut: The expression that designates the exact methods/points where advice is applied.
+- Advisor: A combination of pointcut and advice.
+- Proxy: A runtime wrapper around the target that weaves and executes advice around method calls.
 
-## 5. Servlet API Class Hierarchy  
-```
-Servlet (interface)
- └─ GenericServlet (abstract)
-     └─ HttpServlet
-```
-Key methods in `HttpServlet`: `doGet()`, `doPost()`, `doPut()`, etc.
+### Spring API-based AOP implementation flow
+1) Specify the target class  
+2) Implement the advice class  
+3) Define the pointcut in the configuration  
+4) Combine pointcut and advice with an advisor  
+5) Use ProxyFactoryBean to connect the target and advice (create a proxy bean)  
+6) Obtain and use the proxy bean via getBean()
 
-## 6. Key Features  
-- **Servlet Mapping**: `@WebServlet("/*")` or `` in `web.xml`  
-- **Filters**: Pre/post processing for encoding, authentication, logging  
-- **Listeners**: Detect lifecycle events for context, session, request  
-- **Session & Cookies**: Maintain user state for login, carts, etc.  
-- **JSTL & EL**: Removes scriptlets from JSP for conditionals, loops, i18n, formatting  
+### Practice overview (pro20)
+- Configuration file: AOPTest.xml
+- Main classes:
+  - Calculator: Target (methods for add, subtract, multiply, divide)
+  - LoggingAdvice: Implements MethodInterceptor, performs logging before/after method execution
+  - CalcTest: Loads the context and invokes methods via the proxy bean
 
-## 7. Model2 (Modern MVC) Board Example Flow  
-```
-Browser → Controller (/board/list.do)
-        → Service → DAO (SQL) → DB
-        ← View (JSP) ← Model (List)
-```
-Business operations (create, update, delete, replies, paging) are encapsulated at the service layer.
-
-## 8. Servlet Lifecycle Overview  
-```
-Class load → Instance creation
-      ↓
-   init()     (once)
-      ↓
-   service()  (per request)
-      ↓
-   destroy()  (on unload)
-```
+### Configuration and code highlights
+- AOPTest.xml
+  - calcTarget: com.spring.ex01.Calculator (target bean)
+  - logAdvice: com.spring.ex01.LoggingAdvice (advice bean)
+  - proxyCal: org.springframework.aop.framework.ProxyFactoryBean
+    - target = calcTarget
+    - interceptorNames includes logAdvice
+- LoggingAdvice (invoke):
+  - Print logs before the method call
+  - Execute the actual target method with invocation.proceed()
+  - Print logs after the method call
+- Execution result:
+  - When calling add/subtract/multiply/divide, logging messages are printed before and after each method, and the actual operation results appear
+  - Cross-cutting logic is applied consistently without modifying the target code
