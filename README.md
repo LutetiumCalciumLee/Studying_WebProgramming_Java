@@ -1,6 +1,6 @@
 # Chapter 20: Spring AOP Features — Summary (English)
 
-## 1 Emergence of Aspect-Oriented Programming (AOP)
+## 1. Emergence of Aspect-Oriented Programming (AOP)
 
 - Problems with the traditional approach:
   - Every time implementing a core feature (e.g., member level upgrade), developers embed auxiliary features such as logging, security, and transactions directly inside methods.
@@ -10,7 +10,7 @@
   - Use AOP to separate core features from cross-cutting concerns (logging/security/transactions) and apply them declaratively at required join points.
   - As a result, cohesion increases, duplication decreases, and maintainability improves.
 
-## 2 Using AOP in Spring
+## 2. Using AOP in Spring
 
 ### Key terminology (concepts)
 - Target: The actual business object (class/method) to which auxiliary features are applied.
