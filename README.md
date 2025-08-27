@@ -1,60 +1,29 @@
-# Servlet & JSP
+# Chapter 21: Spring MVC Features
 
-## 1. What Is a Servlet?  
-A Java-based **dynamic web component** implemented as a `.java` class.  
-Runs inside a web application server (WAS) to handle HTTP requests and responses.  
-Lifecycle:  
-- `init()` → `service()` → `destroy()`
+## 1. Overview and architecture
+- Spring MVC follows the Model 2 pattern with the central DispatcherServlet coordinating HandlerMapping, Controller, ModelAndView, ViewResolver, and View to process requests and render responses.
+- It integrates smoothly with Tiles/SiteMesh and tag libraries, making message output, themes, and form handling easier across modules.
 
-## 2. JSP (Jakarta Server Pages)  
-A view technology that embeds Java code within HTML.  
-At compile time, JSP → Servlet → `.class`, then executed by the servlet engine.
+## 2. Request handling flow
+- The browser sends a URL to DispatcherServlet, which asks HandlerMapping for a mapped Controller, invokes it, and receives a ModelAndView containing the logical view name and model data.
+- DispatcherServlet delegates to ViewResolver to pick the View, the View renders the output, and the final response is returned to the client.
 
-## 3. Servlet vs. JSP  
+## 3. Practice 1: SimpleUrlController
+- Setup: Map *.do to DispatcherServlet in web.xml; define beans in action-servlet.xml with SimpleUrlHandlerMapping mapping /test/index.do to a controller bean.
+- Controller: Implements Controller and returns ModelAndView("index.jsp"); the JSP in /WEB-INF/test/index.jsp is rendered when calling /pro21/test/index.do.
 
-| Criterion       | Servlet                                  | JSP                                           |
-|-----------------|------------------------------------------|-----------------------------------------------|
-| Primary Role    | Controller / Model                       | View                                          |
-| Coding Style    | Java code with embedded HTML             | HTML with embedded Java or custom tags (JSTL) |
-| Strengths       | Performance, portability, easy MVC use   | Easy UI authoring, maintainability            |
-| Weaknesses      | Cumbersome for page layout               | Unsuitable for heavy logic                    |
+## 4. Practice 2: MultiActionController with PropertiesMethodNameResolver
+- View resolution: Configure InternalResourceViewResolver (prefix=/test/, suffix=.jsp) so logical names map to JSPs under /test.
+- Routing: Map /test/*.do to UserController and use PropertiesMethodNameResolver so /test/login.do calls login(), which reads parameters, binds them to the model, and returns a logical view (e.g., result).
 
-## 4. MVC (Model-View-Controller) Pattern  
-- **Controller (Servlet)**: Routes requests and controls flow  
-- **Model (DAO / Service / VO)**: Business logic and database access  
-- **View (JSP / JSTL / EL)**: Renders the response  
-Layered separation supports maintainability and team collaboration.
+## 5. Practice 3: Displaying member info
+- Controller: Add memberInfo() to bind id, pwd, name, email to the ModelAndView and set view to memberInfo.
+- Views: memberForm.jsp posts to /test/memberInfo.do; memberInfo.jsp displays the submitted fields in a table.
 
-## 5. Servlet API Class Hierarchy  
-```
-Servlet (interface)
- └─ GenericServlet (abstract)
-     └─ HttpServlet
-```
-Key methods in `HttpServlet`: `doGet()`, `doPost()`, `doPut()`, etc.
+## 6. Mapping summary
+- Clear URL-to-method mapping improves readability: /test/login.do → login(), /test/memberInfo.do → memberInfo().
+- Consolidating multiple actions in one controller via MultiActionController keeps configuration concise while keeping method-level clarity.
 
-## 6. Key Features  
-- **Servlet Mapping**: `@WebServlet("/*")` or `` in `web.xml`  
-- **Filters**: Pre/post processing for encoding, authentication, logging  
-- **Listeners**: Detect lifecycle events for context, session, request  
-- **Session & Cookies**: Maintain user state for login, carts, etc.  
-- **JSTL & EL**: Removes scriptlets from JSP for conditionals, loops, i18n, formatting  
-
-## 7. Model2 (Modern MVC) Board Example Flow  
-```
-Browser → Controller (/board/list.do)
-        → Service → DAO (SQL) → DB
-        ← View (JSP) ← Model (List)
-```
-Business operations (create, update, delete, replies, paging) are encapsulated at the service layer.
-
-## 8. Servlet Lifecycle Overview  
-```
-Class load → Instance creation
-      ↓
-   init()     (once)
-      ↓
-   service()  (per request)
-      ↓
-   destroy()  (on unload)
-```
+## 7. Practice 4: Deriving view name from URL
+- Goal: Remove hardcoded view names by extracting the logical view name from the request URI (strip context path and .do), e.g., /test/login.do → /login.
+- Implementation: A helper getViewName parses request URI, handling parameters and path info; the controller sets ModelAndView to this derived name so login.jsp is resolved automatically.
