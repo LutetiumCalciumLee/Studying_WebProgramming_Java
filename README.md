@@ -1,60 +1,30 @@
-# Servlet & JSP
+# Chapter 23: Using the MyBatis Framework
+***
+## 1. Introduction to MyBatis
+MyBatis is a persistence framework that simplifies database access in Java applications by separating SQL queries from the application code. Unlike traditional JDBC, where SQL statements are embedded within Java methods, MyBatis externalizes them into XML files. This approach improves code readability and makes SQL queries easier to manage and maintain. The framework handles the complexities of mapping query parameters and results between Java objects (like VOs or HashMaps) and the database, and also provides features for data source management and transaction control.
 
-## 1. What Is a Servlet?  
-A Java-based **dynamic web component** implemented as a `.java` class.  
-Runs inside a web application server (WAS) to handle HTTP requests and responses.  
-Lifecycle:  
-- `init()` → `service()` → `destroy()`
+## 2. Configuration and Core Components
+Setting up MyBatis involves two main types of XML files:
+- **`SqlMapConfig.xml`**: This is the central configuration file. It defines crucial settings such as database connection details (driver, URL, credentials) within an `<environments>` block, sets up type aliases for Java objects (e.g., `MemberVO`) using `<typeAliases>` for brevity, and registers the locations of mapper files using the `<mappers>` tag.
+- **Mapper XML Files (e.g., `member.xml`)**: These files contain the actual SQL statements. Each file is assigned a unique namespace, and individual queries (SELECT, INSERT, UPDATE, DELETE) are defined with a unique ID. They use `<resultMap>` to define the mapping between database table columns and the properties of a Java object.
 
-## 2. JSP (Jakarta Server Pages)  
-A view technology that embeds Java code within HTML.  
-At compile time, JSP → Servlet → `.class`, then executed by the servlet engine.
+The core of the interaction in the Java code is handled by a few key objects:
+1.  A `SqlSessionFactory` is created using a `SqlSessionFactoryBuilder` that reads the `SqlMapConfig.xml` file.
+2.  This factory is then used to open a `SqlSession`, which is the primary interface for executing queries.
+3.  The `SqlSession` object provides methods to execute the SQL statements defined in the mapper files.
 
-## 3. Servlet vs. JSP  
+## 3. Implementing CRUD Operations
+MyBatis provides straightforward methods on the `SqlSession` object for performing Create, Read, Update, and Delete (CRUD) operations. Each method corresponds to the type of SQL statement being executed:
+- **Read**: `selectList()` is used for queries that return multiple records (as a `List`), while `selectOne()` is used for queries expected to return a single record or value.
+- **Create**: `insert()` is called to execute an `<insert>` statement. It takes the ID of the query and a parameter object (like a `MemberVO` or a `HashMap`) containing the data to be inserted.
+- **Update**: `update()` is used to execute an `<update>` statement, typically passing a parameter object with the new data and the key to identify the record to be updated.
+- **Delete**: `delete()` executes a `<delete>` statement, usually taking a key (like an ID) as a parameter to specify which record to remove.
 
-| Criterion       | Servlet                                  | JSP                                           |
-|-----------------|------------------------------------------|-----------------------------------------------|
-| Primary Role    | Controller / Model                       | View                                          |
-| Coding Style    | Java code with embedded HTML             | HTML with embedded Java or custom tags (JSTL) |
-| Strengths       | Performance, portability, easy MVC use   | Easy UI authoring, maintainability            |
-| Weaknesses      | Cumbersome for page layout               | Unsuitable for heavy logic                    |
+For any data modification operation (insert, update, delete), it is essential to explicitly call `session.commit()` to save the changes to the database before closing the session. Parameters are passed into SQL statements from Java code using the `#{propertyName}` syntax.
 
-## 4. MVC (Model-View-Controller) Pattern  
-- **Controller (Servlet)**: Routes requests and controls flow  
-- **Model (DAO / Service / VO)**: Business logic and database access  
-- **View (JSP / JSTL / EL)**: Renders the response  
-Layered separation supports maintainability and team collaboration.
-
-## 5. Servlet API Class Hierarchy  
-```
-Servlet (interface)
- └─ GenericServlet (abstract)
-     └─ HttpServlet
-```
-Key methods in `HttpServlet`: `doGet()`, `doPost()`, `doPut()`, etc.
-
-## 6. Key Features  
-- **Servlet Mapping**: `@WebServlet("/*")` or `` in `web.xml`  
-- **Filters**: Pre/post processing for encoding, authentication, logging  
-- **Listeners**: Detect lifecycle events for context, session, request  
-- **Session & Cookies**: Maintain user state for login, carts, etc.  
-- **JSTL & EL**: Removes scriptlets from JSP for conditionals, loops, i18n, formatting  
-
-## 7. Model2 (Modern MVC) Board Example Flow  
-```
-Browser → Controller (/board/list.do)
-        → Service → DAO (SQL) → DB
-        ← View (JSP) ← Model (List)
-```
-Business operations (create, update, delete, replies, paging) are encapsulated at the service layer.
-
-## 8. Servlet Lifecycle Overview  
-```
-Class load → Instance creation
-      ↓
-   init()     (once)
-      ↓
-   service()  (per request)
-      ↓
-   destroy()  (on unload)
-```
+## 4. Using Dynamic SQL
+A powerful feature of MyBatis is its ability to build SQL queries dynamically based on conditions. This is primarily used to create flexible `WHERE` clauses and is handled with special XML tags inside the mapper files:
+- **`<if>`**: This tag conditionally includes a part of the SQL query. For example, in a search function, a condition like `AND name = #{name}` can be included only if the `name` parameter is not null or empty.
+- **`<choose>`, `<when>`, `<otherwise>`**: This structure works like a Java `switch` statement, allowing only one of a set of conditions to be included in the SQL query.
+- **`<foreach>`**: This tag is used to iterate over a collection (like a list of IDs) and is commonly used to build SQL `IN` clauses dynamically.
+- **`<where>`**: This tag smartly handles the inclusion of the `WHERE` keyword and can automatically remove leading `AND` or `OR` conjunctions that might be left over by the `<if>` conditions, preventing syntax errors.
