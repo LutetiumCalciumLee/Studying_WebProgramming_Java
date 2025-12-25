@@ -1,108 +1,85 @@
-# Chapter 18: Getting Started with Spring Framework
+<details>
+<summary>ENG (English Version)</summary>
 
-## 1 What is a Framework?
+# Spring Framework Introduction
 
-### Framework Definition
-- **Dictionary meaning**: A structure or skeleton that constitutes something
-- **Software meaning**: A semi-finished product that provides functions pre-made as classes or interfaces
+### 1. Framework Evolution
+Traditional EJB (Enterprise JavaBeans) was heavyweight with complex container requirements. Spring emerged as lightweight framework supporting POJOs (Plain Old Java Objects) with simplified configuration.
 
-### Framework Advantages
-- **Development efficiency**: Enables development of applications with guaranteed productivity and quality through development based on consistent standards
-- **Maintenance**: Ensures high quality in post-development maintenance and feature extensibility
+### 2. Core Spring Concepts
+**IoC (Inversion of Control):** Framework manages object lifecycle and dependencies (reverses control from developers).
+**DI (Dependency Injection):** Objects receive dependencies via constructor/setter rather than creating them.
+**AOP (Aspect-Oriented Programming):** Cross-cutting concerns (logging, transactions) separated from business logic.
 
-## 1.1 Spring Framework
+### 3. Spring Architecture Modules
+**Core Container:** IoC, Bean management, Context.
+**AOP:** Aspect-oriented features.
+**DAO/ORM:** JDBC abstraction, Hibernate/MyBatis integration.
+**Web/MVC:** Spring MVC for web applications.
+**Additional:** Security, Test, Batch modules.
 
-### Spring Framework Overview
-- **Definition**: An open-source framework for Java web application development
-- **Characteristics**: A lightweight framework that is lighter than EJB (Enterprise Java Beans)
+### 4. Spring vs Traditional Java EE
+**Traditional:** Heavyweight EJB, XML-heavy config, invasive APIs.
+**Spring:** POJO-based, annotation-driven, lightweight container, extensive auto-configuration.
 
-### Container Concept
-- **Tomcat**: Called a servlet container because when Tomcat runs, it has full authority over servlet creation, initialization, service execution, and destruction
-- **Spring**: Spring has the authority to directly manage various beans (class objects) used in applications, not the developer
+### 5. Project Setup Requirements
+Spring 3.0 requires multiple JARs in WEB-INF/lib: `spring-core`, `spring-context`, `spring-beans`, `spring-aop`, `spring-web`, `spring-webmvc`, plus dependencies like `commons-logging`, `cglib`, `aopalliance`.
 
-## Spring Framework Characteristics
+### 6. Key Benefits
+- **Loose Coupling:** DI reduces direct dependencies.
+- **Testability:** POJOs easily unit testable.
+- **Modularity:** Mix/match modules as needed.
+- **Configuration:** XML/annotation-based, hot-reloadable.
 
-### Core Features
-- **Lightweight**: Lighter and easier to learn than EJB, performs lightweight container functions
-- **Inversion of Control (IoC)**: Controls loose coupling between applications using IoC technology
-- **Dependency Injection (DI)**: Supports dependency injection functionality
-- **Aspect-Oriented Programming (AOP)**: Manages resources using AOP functionality
-- **Persistence support**: Supports various services related to persistence
-- **Library integration**: Supports integration with numerous libraries
-
-### Key Architecture Components
-- **POJO-based framework**
-- **Lightweight container**
-- **Dependency Injection (DI)**
-- **Aspect-Oriented Programming (AOP)**
-- **Inversion of Control (IoC)**
-
-### Term Definitions
-- **Dependency Injection**: A method where the framework creates and uses class objects instead of developers creating them in code
-- **Inversion of Control**: A method where the framework directly performs servlets or beans instead of developers creating them in code
-- **Aspect-Oriented**: A method that increases modularity by separating and implementing auxiliary functions from core functions
-
-## Spring Framework Main Features
-
-| Feature | Description |
-|---------|-------------|
-| **Core** | Provides IoC functionality to separate other features and configurations |
-| **Context** | Provides access methods to beans that perform various functions in the application as Spring's basic functionality |
-| **DAO** | Makes JDBC functionality more convenient to use |
-| **ORM** | Provides functionality integrated with persistence-related frameworks like Hibernate or MyBatis |
-| **AOP** | Provides aspect-oriented functionality |
-| **Web** | Provides functionality needed for web application development |
-| **WebMVC** | Provides functionality related to MVC implementation in Spring |
-
----
-
-## 2 Spring Framework Environment Setup
-
-### Project Setup
-- Create a new project named **pro18**
-- Copy Spring 3.0 library files from the provided example source to the **/WEB-INF/lib** folder
-
-### Project Structure
+### 7. Basic Configuration Pattern
 ```
-pro18
-├── Deployment Descriptor: pro18
-├── JAX-WS Web Services
-├── Java Resources
-├── JavaScript Resources
-├── build
-└── WebContent
-    ├── META-INF
-    └── WEB-INF
-        └── lib
-            ├── cglib-nodep-2.1_3.jar
-            ├── cglib-nodep-2.2.jar
-            ├── com.springsource.javax.validation-1.0.0.GA.jar
-            ├── com.springsource.org.aopalliance-1.0.0.jar
-            ├── com.springsource.org.aspectj.weaver-1.6.8.RELEASE.jar
-            ├── commons-beanutils-1.8.3.jar
-            ├── commons-dbcp-1.4.jar
-            ├── commons-logging-1.1.1.jar
-            ├── commons-pool-1.5.6.jar
-            ├── json_simple-1.1.jar
-            ├── jstl.jar
-            ├── log4j-1.2.16.jar
-            ├── mybatis-3.0.5.jar
-            ├── mybatis-spring-1.0.1.jar
-            ├── mysql-connector-java-3.0.14-production-bin.jar
-            ├── ojdbc14.jar
-            ├── org.springframework.aop-3.0.6.RELEASE.jar
-            ├── org.springframework.asm-3.0.6.RELEASE.jar
-            ├── org.springframework.aspects-3.0.6.RELEASE.jar
-            ├── org.springframework.beans-3.0.6.RELEASE.jar
-            └── org.springframework.context-3.0.6.RELEASE.jar
+<context:component-scan base-package="com.example"/>
+<mvc:annotation-driven/>
+<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"/>
 ```
+Enables component scanning, MVC, and database connection pooling.
 
-### Required Libraries
-The setup includes essential JAR files for:
-- **Spring Framework**: Core Spring functionality
-- **Database connectivity**: MySQL and Oracle drivers
-- **ORM integration**: MyBatis and Spring-MyBatis integration
-- **Logging**: Log4j and Commons Logging
-- **Utilities**: Commons libraries for various utilities
-- **JSON processing**: JSON Simple library
-- **Web functionality**: JSTL for JSP pages
+</details>
+
+<details>
+<summary>KOR (한국어 버전)</summary>
+
+# 스프링 프레임워크 시작하기
+
+### 1. 프레임워크 진화
+전통적인 EJB(Enterprise JavaBeans)는 복잡한 컨테이너 요구사항으로 무거움. 스프링은 POJO(Plain Old Java Object)를 지원하는 경량 프레임워크로 등장.
+
+### 2. 스프링 핵심 개념
+**IoC (제어의 역전):** 프레임워크가 객체 생명주기와 의존성 관리.
+**DI (의존성 주입):** 생성자/Setter로 의존성 주입.
+**AOP (관점 지향 프로그래밍):** 로깅, 트랜잭션 등 횡단 관심사 분리.
+
+### 3. 스프링 아키텍처 모듈
+**Core Container:** IoC, Bean 관리, Context.
+**AOP:** 관점 지향 기능.
+**DAO/ORM:** JDBC 추상화, Hibernate/MyBatis 통합.
+**Web/MVC:** Spring MVC 웹 애플리케이션.
+**추가:** Security, Test, Batch 모듈.
+
+### 4. 스프링 vs 전통 Java EE
+**전통:** 무거운 EJB, XML 과다, 침투적 API.
+**스프링:** POJO 기반, 어노테이션 주도, 경량 컨테이너, 광범위 자동 설정.
+
+### 5. 프로젝트 설정 요구사항
+Spring 3.0은 WEB-INF/lib에 다수 JAR 필요: `spring-core`, `spring-context`, `spring-beans`, `spring-aop`, `spring-web`, `spring-webmvc` + `commons-logging`, `cglib`, `aopalliance` 등 의존성.
+
+### 6. 주요 장점
+- **느슨한 결합:** DI로 직접 의존성 감소.
+- **테스트 용이성:** POJO 단위 테스트 간편.
+- **모듈성:** 필요한 모듈만 선택.
+- **설정:** XML/어노테이션 기반, 핫 리로드 가능.
+
+### 7. 기본 설정 패턴
+```
+<context:component-scan base-package="com.example"/>
+<mvc:annotation-driven/>
+<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"/>
+```
+컴포넌트 스캔, MVC, 데이터베이스 커넥션 풀 활성화.
+
+</details>
