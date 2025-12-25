@@ -1,108 +1,299 @@
-# Servlet Request
+<details>
+<summary>ENG (English Version)</summary>
 
-## 1. Overview of Web Applications
+# Spring and MyBatis Integration
 
-* Web applications operate based on a **request/response model between client (browser) and server**.
-* Static HTML pages alone cannot provide interactive user experiences, so **dynamic web technologies (Servlet, JSP)** are needed.
-* Servlet is a Java-based server-side program responsible for dynamic processing in web applications.
+### 1. Dependencies
+**mybatis:** `mybatis-3.0.5.jar`  
+**mybatis-spring:** `mybatis-spring-1.0.1.jar`  
+**Spring:** `spring-context`, `spring-beans`, `spring-core`  
+**Database:** `ojdbc6.jar` (Oracle)
 
----
+### 2. Configuration Files
+- **web.xml:** `ContextLoaderListener` loads `action-mybatis.xml`, `action-service.xml`
+- **action-servlet.xml:** MVC routing (Controller, ViewResolver, HandlerMapping)
+- **action-mybatis.xml:** DataSource, SqlSessionFactory, SqlSession, DAO beans
+- **action-service.xml:** Service → DAO injection
+- **jdbc.properties:** DB credentials
 
-## 2. Why Servlet is Needed
-
-* Used to generate dynamic web pages in response to client requests.
-* Examples:
-
-  * Login processing
-  * Writing and listing posts on a bulletin board
-
----
-
-## 3. Characteristics of Servlet
-
-* **Java-based server-side technology**.
-* Preceded JSP and forms the foundation of JSP, Spring, and other frameworks.
-* Excellent platform independence, security, and reusability.
-* Clients do not call Servlets directly; the flow is **Browser → Web Server → Servlet Container → Servlet**.
-
----
-
-## 4. Servlet Workflow
-
-1. Client sends a request via browser
-2. Web server receives the request and passes it to the **Servlet Container**
-3. Servlet Container executes the appropriate **Servlet object**
-4. Servlet processes the request and generates a **response**
-5. Response (HTML, JSON, etc.) is returned to the browser
-
----
-
-## 5. Role of Servlet Container
-
-* Manages the **lifecycle** of Servlets:
-
-  * Object creation
-  * Initialization (`init`)
-  * Request handling (`service`)
-  * Cleanup (`destroy`)
-* Supports **multi-threading** to efficiently handle multiple requests simultaneously.
-
----
-
-## 6. Servlet Class Structure
-
-```plaintext
-Servlet (Interface)
-  ↳ GenericServlet (Abstract)
-    ↳ HttpServlet (Class)
+### 3. action-mybatis.xml - DataSource Setup
+```
+<bean id="dataSource" class="org.apache.ibatis.datasource.pooled.PooledDataSource">
+  <property name="driver" value="${jdbc.driverClassName}"/>
+  <property name="url" value="${jdbc.url}"/>
+  <property name="username" value="${jdbc.username}"/>
+  <property name="password" value="${jdbc.password}"/>
+</bean>
 ```
 
-* **Servlet**: Defines core methods (`init`, `service`, `destroy`)
-* **GenericServlet**: Protocol-independent abstract class
-* **HttpServlet**: HTTP-specific class, most commonly used
-
----
-
-## 7. Servlet Lifecycle
-
-1. `init()` – executed once at the start
-2. `service()` – executed on every request (calls HTTP method-specific handlers like `doGet()`, `doPost()`)
-3. `destroy()` – executed once when the Servlet is destroyed
-
----
-
-## 8. Servlet Mapping Methods
-
-### 1) `web.xml` Configuration
-
-```xml
-<servlet>
-    <servlet-name>ExampleServlet</servlet-name>
-    <servlet-class>com.test.ExampleServlet</servlet-class>
-</servlet>
-<servlet-mapping>
-    <servlet-name>ExampleServlet</servlet-name>
-    <url-pattern>/example</url-pattern>
-</servlet-mapping>
+### 4. action-mybatis.xml - SqlSessionFactory
+```
+<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+  <property name="dataSource" ref="dataSource"/>
+  <property name="configLocation" value="classpath:mybatis/model/modelConfig.xml"/>
+  <property name="mapperLocations" value="classpath:mybatis/mappers/*.xml"/>
+</bean>
 ```
 
-### 2) Annotation-based Configuration
+### 5. action-mybatis.xml - SqlSessionTemplate
+```
+<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+  <constructor-arg index="0" ref="sqlSessionFactory"/>
+</bean>
+```
 
-```java
-@WebServlet("/example")
-public class ExampleServlet extends HttpServlet {
-    ...
+### 6. action-mybatis.xml - DAO Bean
+```
+<bean id="memberDAO" class="com.spring.member.dao.MemberDAOImpl">
+  <property name="sqlSession" ref="sqlSession"/>
+</bean>
+```
+
+### 7. action-service.xml
+```
+<bean id="memberService" class="com.spring.member.service.MemberServiceImpl">
+  <property name="memberDAO" ref="memberDAO"/>
+</bean>
+```
+
+### 8. MemberServiceImpl
+```
+public class MemberServiceImpl implements MemberService {
+  private MemberDAO memberDAO;
+  
+  public void setMemberDAO(MemberDAO memberDAO) {
+    this.memberDAO = memberDAO;
+  }
+  
+  public List<MemberVO> listMembers() throws DataAccessException {
+    return memberDAO.selectAllMemberList();
+  }
 }
 ```
 
-* Duplicate URL mappings cause errors during server startup
-* Annotation method is simpler and easier to maintain
+### 9. MemberDAOImpl - selectList
+```
+public List<MemberVO> selectAllMemberList() throws DataAccessException {
+  List<MemberVO> membersList = sqlSession.selectList("mapper.member.selectAllMemberList");
+  return membersList;
+}
+```
 
----
+### 10. MemberDAOImpl - insert
+```
+public int insertMember(MemberVO memberVO) throws DataAccessException {
+  int result = sqlSession.insert("mapper.member.insertMember", memberVO);
+  return result;
+}
+```
 
-## 9. Managing Multiple Servlets
+### 11. MemberDAOImpl - delete
+```
+public int deleteMember(String id) throws DataAccessException {
+  int result = sqlSession.delete("mapper.member.deleteMember", id);
+  return result;
+}
+```
 
-* Implement Servlets separately by function (e.g., bulletin board, login, product)
-* Each Servlet name (`servlet-name`) and URL pattern must be **unique**
-* Tomcat restart is required after configuration changes
+### 12. member.xml - SELECT
+```
+<resultMap id="memResult" type="memberVO">
+  <result property="id" column="id"/>
+  <result property="pwd" column="pwd"/>
+  <result property="name" column="name"/>
+  <result property="email" column="email"/>
+  <result property="joinDate" column="joinDate"/>
+</resultMap>
 
+<select id="selectAllMemberList" resultMap="memResult">
+  <![CDATA[select from tmember order by joinDate desc]]>
+</select>
+
+<insert id="insertMember" parameterType="memberVO">
+  <![CDATA[insert into tmember(id, pwd, name, email) values(#{id}, #{pwd}, #{name}, #{email})]]>
+</insert>
+```
+
+### 13. modelConfig.xml - TypeAlias
+```
+<configuration>
+  <typeAliases>
+    <typeAlias type="com.spring.member.vo.MemberVO" alias="memberVO"/>
+  </typeAliases>
+</configuration>
+```
+
+### 14. MemberControllerImpl
+```
+public class MemberControllerImpl extends MultiActionController {
+  private MemberService memberService;
+  
+  public void setMemberService(MemberService memberService) {
+    this.memberService = memberService;
+  }
+  
+  public ModelAndView listMembers(HttpServletRequest request, HttpServletResponse response) {
+    List<MemberVO> membersList = memberService.listMembers();
+    ModelAndView mav = new ModelAndView("listMembers");
+    mav.addObject("membersList", membersList);
+    return mav;
+  }
+}
+```
+
+### 15. Integration Flow
+```
+MemberController → MemberService → MemberDAO → SqlSession → member.xml SQL
+→ MyBatis mapping → List<MemberVO> → ModelAndView → listMembers.jsp
+```
+
+</details>
+
+<details>
+<summary>KOR (한국어 버전)</summary>
+
+# 스프링과 마이바티스 연동
+
+### 1. 의존성
+**mybatis:** `mybatis-3.0.5.jar`  
+**mybatis-spring:** `mybatis-spring-1.0.1.jar`  
+**Spring:** `spring-context`, `spring-beans`, `spring-core`  
+**DB:** `ojdbc6.jar` (Oracle)
+
+### 2. 설정 파일
+- **web.xml:** `ContextLoaderListener`가 `action-mybatis.xml`, `action-service.xml` 로드
+- **action-servlet.xml:** MVC 라우팅 (Controller, ViewResolver, HandlerMapping)
+- **action-mybatis.xml:** DataSource, SqlSessionFactory, SqlSession, DAO 빈
+- **action-service.xml:** Service → DAO 주입
+- **jdbc.properties:** DB 자격증명
+
+### 3. action-mybatis.xml - DataSource 설정
+```
+<bean id="dataSource" class="org.apache.ibatis.datasource.pooled.PooledDataSource">
+  <property name="driver" value="${jdbc.driverClassName}"/>
+  <property name="url" value="${jdbc.url}"/>
+</bean>
+```
+
+### 4. action-mybatis.xml - SqlSessionFactory
+```
+<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+  <property name="dataSource" ref="dataSource"/>
+  <property name="configLocation" value="classpath:mybatis/model/modelConfig.xml"/>
+  <property name="mapperLocations" value="classpath:mybatis/mappers/*.xml"/>
+</bean>
+```
+
+### 5. action-mybatis.xml - SqlSessionTemplate
+```
+<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+  <constructor-arg index="0" ref="sqlSessionFactory"/>
+</bean>
+```
+
+### 6. action-mybatis.xml - DAO 빈
+```
+<bean id="memberDAO" class="com.spring.member.dao.MemberDAOImpl">
+  <property name="sqlSession" ref="sqlSession"/>
+</bean>
+```
+
+### 7. action-service.xml
+```
+<bean id="memberService" class="com.spring.member.service.MemberServiceImpl">
+  <property name="memberDAO" ref="memberDAO"/>
+</bean>
+```
+
+### 8. MemberServiceImpl
+```
+public class MemberServiceImpl implements MemberService {
+  private MemberDAO memberDAO;
+  
+  public void setMemberDAO(MemberDAO memberDAO) {
+    this.memberDAO = memberDAO;
+  }
+  
+  public List<MemberVO> listMembers() {
+    return memberDAO.selectAllMemberList();
+  }
+}
+```
+
+### 9. MemberDAOImpl - selectList
+```
+public List<MemberVO> selectAllMemberList() {
+  List<MemberVO> membersList = sqlSession.selectList("mapper.member.selectAllMemberList");
+  return membersList;
+}
+```
+
+### 10. MemberDAOImpl - insert
+```
+public int insertMember(MemberVO memberVO) {
+  int result = sqlSession.insert("mapper.member.insertMember", memberVO);
+  return result;
+}
+```
+
+### 11. MemberDAOImpl - delete
+```
+public int deleteMember(String id) {
+  int result = sqlSession.delete("mapper.member.deleteMember", id);
+  return result;
+}
+```
+
+### 12. member.xml - SELECT
+```
+<resultMap id="memResult" type="memberVO">
+  <result property="id" column="id"/>
+  <result property="pwd" column="pwd"/>
+  <result property="name" column="name"/>
+  <result property="email" column="email"/>
+  <result property="joinDate" column="joinDate"/>
+</resultMap>
+
+<select id="selectAllMemberList" resultMap="memResult">
+  select from tmember order by joinDate desc
+</select>
+
+<insert id="insertMember" parameterType="memberVO">
+  insert into tmember(id, pwd, name, email) values(#{id}, #{pwd}, #{name}, #{email})
+</insert>
+```
+
+### 13. modelConfig.xml - TypeAlias
+```
+<configuration>
+  <typeAliases>
+    <typeAlias type="com.spring.member.vo.MemberVO" alias="memberVO"/>
+  </typeAliases>
+</configuration>
+```
+
+### 14. MemberControllerImpl
+```
+public class MemberControllerImpl extends MultiActionController {
+  private MemberService memberService;
+  
+  public void setMemberService(MemberService memberService) {
+    this.memberService = memberService;
+  }
+  
+  public ModelAndView listMembers(HttpServletRequest request, HttpServletResponse response) {
+    List<MemberVO> membersList = memberService.listMembers();
+    ModelAndView mav = new ModelAndView("listMembers");
+    mav.addObject("membersList", membersList);
+    return mav;
+  }
+}
+```
+
+### 15. 전반적인 흐름
+```
+MemberController → MemberService → MemberDAO → SqlSession → member.xml SQL
+→ MyBatis 매핑 → List<MemberVO> → ModelAndView → listMembers.jsp
+```
+
+</details>
