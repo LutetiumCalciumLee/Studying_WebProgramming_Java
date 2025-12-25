@@ -1,33 +1,73 @@
-# Chapter 24: Integrating Spring and MyBatis
-***
-## 1. Introduction to Spring and MyBatis Integration
-This chapter demonstrates how to integrate the MyBatis persistence framework with the Spring framework. The key objective is to leverage Spring's powerful dependency injection and declarative transaction management to simplify and manage the MyBatis data access layer. Instead of manually creating and managing `SqlSessionFactory` and `SqlSession` objects, the Spring container is configured to handle their lifecycle. This allows developers to focus on business logic while the frameworks manage the underlying resources, resulting in cleaner, more maintainable code.
+<details>
+<summary>ENG (English Version)</summary>
 
-## 2. Configuration and Core Components
-The integration is primarily achieved through a series of XML configuration files that define how Spring and MyBatis will work together.
+# Web Programming Evolution
 
-*   **`web.xml`**: This file is the entry point for the web application. It is configured to use Spring's `ContextLoaderListener`, which initializes the Spring application context and loads the configuration files for the service and data access layers (`action-service.xml`, `action-mybatis.xml`).
-*   **`action-servlet.xml`**: This is the Spring MVC configuration file. It sets up the `InternalResourceViewResolver` to locate JSP files and defines the controller beans (`MemberController`). It also maps URL patterns (e.g., `/member/*.do`) to the appropriate controller and its methods using `SimpleUrlHandlerMapping` and `PropertiesMethodNameResolver`.
-*   **`action-mybatis.xml`**: This is the central file for the Spring-MyBatis integration. It defines the core beans required for database interaction:
-    *   A `DataSource` is configured using connection details from an external `jdbc.properties` file.
-    *   `SqlSessionFactoryBean` is used to create a MyBatis `SqlSessionFactory`. It is injected with the `DataSource` and is configured with the locations of the MyBatis configuration file (`modelConfig.xml`) and the mapper XML files (`mappers/*.xml`).
-    *   `SqlSessionTemplate` is a Spring-managed, thread-safe implementation of the MyBatis `SqlSession`. It is created using the `SqlSessionFactory` and is the bean that gets injected into the DAO layer to execute SQL queries.
-*   **Mapper and Model Configuration**:
-    *   `modelConfig.xml` is a standard MyBatis configuration file used here to define type aliases (e.g., aliasing `com.spring.member.vo.MemberVO` to `memberVO`) for cleaner syntax in mapper files.
-    *   `member.xml` is the MyBatis mapper file containing the actual SQL queries for CRUD operations (e.g., `selectAllMemberList`, `insertMember`) with their unique IDs.
+### 1. Static Web Programming
+- **Definition:** Web server stores pre-made HTML/CSS/images/JS; serves identical files to all requests.
+- **User Experience:** Users see "unchanging fixed pages" regardless of request context.
+- **Use Case:** Ideal for screen design and client-side event handling.
+- **Limitation:** Unsuitable for real-time data (exchange rates, stock prices).
 
-## 3. Implementing the MVC Architecture
-The application is structured following the Model-View-Controller (MVC) pattern, with distinct layers for data access, business logic, and presentation. Spring's dependency injection is used to wire these components together.
+### 2. Static Web Drawback
+- **Real-time Simulation:** Admin must manually edit HTML and reupload periodically (inefficient).
+- **Result:** Fixed information delivery model; cannot reflect live data changes.
+- **Core Components:** Web server/client/HTTP/HTML/JavaScript/CSS (HTML·JS·CSS handle UI/events).
 
-*   **DAO Layer (`MemberDAOImpl.java`)**: This class is responsible for direct database interaction. It contains a `sqlSession` property and a setter method, allowing Spring to inject the `SqlSessionTemplate` bean. Methods in the DAO (e.g., `selectAllMemberList()`, `insertMember()`) use the injected `sqlSession` object to execute the corresponding SQL statements defined in the `member.xml` mapper by referencing their namespace and ID (e.g., `mapper.member.selectAllMemberList`).
-*   **Service Layer (`MemberServiceImpl.java`)**: This class implements the business logic. It has a `memberDAO` property that is injected by Spring. The service methods (e.g., `listMembers()`, `addMember()`) call the corresponding methods in the DAO to perform data operations, acting as a bridge between the controller and the data layer.
-*   **Controller Layer (`MemberControllerImpl.java`)**: This class handles incoming web requests. It extends Spring's `MultiActionController` to manage multiple actions within a single class. It has a `memberService` property injected by Spring. Handler methods like `listMembers()` and `addMember()` call the service layer to process requests, and then create and return a `ModelAndView` object. This object contains the data to be displayed and the logical name of the view (JSP file) that will render the response.
+### 3. Dynamic Web Programming
+- **Solution:** Web server delegates request to **Web Application Server (WAS)**.
+- **Flow:** Client request → Web server → WAS queries DB → generates dynamic HTML → returns to client.
+- **Benefit:** Real-time data delivery (exchange rates, stock prices, user-specific content).
 
-## 4. View Layer and Request Handling
-The user interface is built with JSP files, and the flow of the application is controlled by URL requests handled by the controller.
+### 4. CGI (Early Dynamic Implementation)
+- **Mechanism:** Creates new process per request; process loads and executes function.
+- **Problem:** As users/requests increase, memory overhead grows exponentially (inefficient).
+- **Limitation:** Spawning processes for each request is resource-intensive.
 
-*   **JSP Files**:
-    *   `listMembers.jsp`: Displays a table of member data passed from the controller. It uses JSTL tags to iterate over the list of members. It includes links for actions like "Delete" and "Sign Up," which point to specific controller URLs.
-    *   `memberForm.jsp`: Provides a form for users to input new member information. Submitting the form sends a POST request to the `/member/addMember.do` URL.
-*   **Request Flow**: When a user clicks a link or submits a form, a request is sent to a specific URL (e.g., `/member/removeMember.do?id=djkim`). The `SimpleUrlHandlerMapping` directs this request to the `memberController`. The `PropertiesMethodNameResolver` then maps the URL to the corresponding method in the controller (`removeMember`). The controller method processes the request, interacts with the service layer, and finally redirects the user back to the member list page to show the updated data.
+### 5. Modern Approach (JSP/ASP/PHP)
+- **Improvement:** Thread-based execution instead of process-per-request.
+- **JSP Efficiency:** Same function loads into memory once on first request, then reused for subsequent requests.
+- **Advantage:** Eliminates per-request load cost; handles multiple concurrent requests efficiently.
 
+### 6. Summary
+- **Static → Dynamic Evolution:** Fixed pages → real-time data via WAS integration.
+- **CGI vs JSP:** Process-heavy (CGI) → thread-efficient (JSP) for concurrent request handling.
+
+</details>
+
+<details>
+<summary>KOR (한국어 버전)</summary>
+
+# 웹 프로그래밍 발전
+
+### 1. 정적 웹 프로그래밍
+- **정의:** 웹서버(아파치 등)에 미리 만들어 둔 HTML/CSS/이미지/JS 파일을 저장해두고 요청 시 그대로 내려주는 방식.
+- **사용자 경험:** "변하지 않는 고정 페이지"를 보게 됨.
+- **적합 분야:** 화면 디자인 구성, 클라이언트 이벤트 처리에 최적.
+- **부적합 분야:** 환율/주가 같은 실시간 정보 제공.
+
+### 2. 정적 웹의 문제점
+- **실시간 정보 흉내:** 관리자가 주기적으로 HTML을 직접 수정해 업로드(비효율적).
+- **결과:** 고정 정보 제공 중심이 됨; 실시간 데이터 반영 불가.
+- **기본 구성 요소:** 웹서버/클라이언트/HTTP/HTML/JavaScript/CSS (HTML·JS·CSS는 화면과 이벤트 처리 담당).
+
+### 3. 동적 웹 프로그래밍
+- **해결책:** 웹서버가 요청을 **웹 애플리케이션 서버(WAS)**로 전달.
+- **흐름:** 클라이언트 요청 → 웹서버 → WAS가 DB에서 실시간 데이터 조회 → 동적 HTML 생성 → 클라이언트에 전달.
+- **장점:** 실시간 정보 제공(환율, 주가, 사용자별 맞춤 콘텐츠).
+
+### 4. CGI (초기 동적 방식)
+- **동작 방식:** 요청마다 프로세스를 새로 생성·로드하여 기능 수행.
+- **문제점:** 사용자/기능 증가 시 프로세스 생성으로 메모리 부하 증가.
+- **한계:** 요청당 프로세스 생성은 리소스 낭비.
+
+### 5. 개선된 방식 (JSP/ASP/PHP)
+- **개선점:** 프로세스 방식 대신 스레드 방식으로 동작.
+- **JSP 효율성:** 동일 기능이 최초 요청 시 메모리에 로드되고, 이후 요청에서는 기존 로드된 기능을 재사용.
+- **장점:** 매번 로드하는 비용 제거; 다수 동시 요청 환경에 적합.
+
+### 6. 발전 요약
+- **정적 → 동적 진화:** 고정 페이지 → WAS를 통한 실시간 데이터 제공.
+- **CGI vs JSP:** 프로세스 방식(비효율) → 스레드 방식(효율적) 동시 요청 처리.
+
+</details>
