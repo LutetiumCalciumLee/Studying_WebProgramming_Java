@@ -52,12 +52,6 @@
 - **GuguTest:** Dynamic multiplication table generation with HTML table/row loops.
 - **GuguTest2/3:** Add alternating row colors, radio buttons, checkboxes for interactivity.
 
-### 10. Summary
-- **Form Submission:** HTML form (GET/POST) → servlet (doGet/doPost) → form data extraction.
-- **Response Generation:** setContentType() → getWriter() → print HTML.
-- **Data Handling:** getParameter() (single), getParameterValues() (array), getParameterNames() (all).
-- **Best Practices:** Unified doHandle(), client validation, hidden fields for extra data.
-
 </details>
 
 <details>
@@ -113,11 +107,5 @@
 - **LoginTest2:** 특정 ID(admin) 확인 및 역할별 메시지 표시.
 - **GuguTest:** 동적 구구단 생성(HTML 테이블/행 반복).
 - **GuguTest2/3:** 행별 색 변경, 라디오 버튼, 체크박스 추가.
-
-### 10. 요약
-- **폼 제출:** HTML 폼(GET/POST) → 서블릿(doGet/doPost) → 폼 데이터 추출.
-- **응답 생성:** setContentType() → getWriter() → HTML 출력.
-- **데이터 처리:** getParameter()(단일), getParameterValues()(배열), getParameterNames()(전체).
-- **모범 사례:** 통합 doHandle(), 클라이언트 검증, 숨겨진 필드로 추가 데이터 전송.
 
 </details>
