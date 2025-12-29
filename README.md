@@ -1,131 +1,85 @@
 <details>
 <summary>ENG (English Version)</summary>
 
-# Servlet & JSP
+# Java Web Programming
 
-## 1. What Is a Servlet?  
-A Java-based **dynamic web component** implemented as a `.java` class.  
-Runs inside a web application server (WAS) to handle HTTP requests and responses.  
-Lifecycle:  
-- `init()` → `service()` → `destroy()`
+### 1. **Spring Legacy Project Setup**  
+   - Maven installation and configuration  
+   - Spring Tool Suite (STS) setup  
+   - Directory structure of a typical Spring MVC project  
 
-## 2. JSP (Jakarta Server Pages)  
-A view technology that embeds Java code within HTML.  
-At compile time, JSP → Servlet → `.class`, then executed by the servlet engine.
+### 2. **Spring MVC Core Features**  
+   - Controller, DAO, Service layers  
+   - View with JSP using Apache Tiles  
+   - JDBC with MyBatis integration  
+   - Logging with Log4j  
 
-## 3. Servlet vs. JSP  
+### 3. **User Management Functionality**  
+   - Login, Logout, Session handling  
+   - User registration and modification  
+   - Member list and detail views  
 
-| Criterion       | Servlet                                  | JSP                                           |
-|-----------------|------------------------------------------|-----------------------------------------------|
-| Primary Role    | Controller / Model                       | View                                          |
-| Coding Style    | Java code with embedded HTML             | HTML with embedded Java or custom tags (JSTL) |
-| Strengths       | Performance, portability, easy MVC use   | Easy UI authoring, maintainability            |
-| Weaknesses      | Cumbersome for page layout               | Unsuitable for heavy logic                    |
+### 4. **REST API with Spring**  
+   - `@RestController` and JSON response using Jackson  
+   - CRUD via `GET`, `POST`, `PUT`, `DELETE`  
+   - `@RequestBody`, `@ResponseBody`, `@PathVariable` explained  
+   - Using `ResponseEntity` for custom HTTP responses  
 
-## 4. MVC (Model-View-Controller) Pattern  
-- **Controller (Servlet)**: Routes requests and controls flow  
-- **Model (DAO / Service / VO)**: Business logic and database access  
-- **View (JSP / JSTL / EL)**: Renders the response  
-Layered separation supports maintainability and team collaboration.
+### 5. **Client-Side Communication**  
+   - jQuery AJAX with Spring REST endpoints  
+   - JSON object exchange from/to Spring controllers  
 
-## 5. Servlet API Class Hierarchy  
-```
-Servlet (interface)
- └─ GenericServlet (abstract)
-     └─ HttpServlet
-```
-Key methods in `HttpServlet`: `doGet()`, `doPost()`, `doPut()`, etc.
+### 6. **Advanced Configurations**  
+   - AOP with AspectJ for logging  
+   - Using Tiles for dynamic page layouts  
+   - Log4j configuration for console and file logging  
 
-## 6. Key Features  
-- **Servlet Mapping**: `@WebServlet("/*")` or `<servlet-mapping>` in `web.xml`  
-- **Filters**: Pre/post processing for encoding, authentication, logging  
-- **Listeners**: Detect lifecycle events for context, session, request  
-- **Session & Cookies**: Maintain user state for login, carts, etc.  
-- **JSTL & EL**: Removes scriptlets from JSP for conditionals, loops, i18n, formatting  
-
-## 7. Model2 (Modern MVC) Board Example Flow  
-```
-Browser → Controller (/board/list.do)
-        → Service → DAO (SQL) → DB
-        ← View (JSP) ← Model (List)
-```
-Business operations (create, update, delete, replies, paging) are encapsulated at the service layer.
-
-## 8. Servlet Lifecycle Overview  
-```
-Class load → Instance creation
-      ↓
-   init()     (once)
-      ↓
-   service()  (per request)
-      ↓
-   destroy()  (on unload)
-```
+### 7. **Complete CRUD with RESTful API**  
+   - RESTful controller returning objects, lists, maps  
+   - Full RESTful CRUD example using `ArticleVO`  
+   - Tested with jQuery (AJAX) and sample `JSONTest.jsp`  
 
 </details>
 
 <details>
 <summary>KOR (한국어 버전)</summary>
 
-# 서블릿 & JSP
+# 자바 웹 프로그래밍
 
-## 1. 서블릿이란?  
-자바 기반의 **동적 웹 컴포넌트**로 `.java` 클래스로 구현됨.  
-웹 애플리케이션 서버(WAS) 내부에서 HTTP 요청과 응답을 처리.  
-생명 주기:  
-- `init()` → `service()` → `destroy()`
+### 1. **스프링 레거시 프로젝트 구축**  
+   - Maven 설치 및 환경 변수 설정  
+   - STS(Spring Tool Suite) 설치  
+   - 스프링 MVC 기본 디렉터리 구조 설명  
 
-## 2. JSP (자카르타 서버 페이지)  
-HTML 내부에 자바 코드를 삽입하는 뷰 기술.  
-컴파일 시 JSP → 서블릿 → `.class` 변환 후 서블릿 엔진에서 실행됨.
+### 2. **Spring MVC 핵심 기능 구성**  
+   - Controller, DAO, Service 레이어 구조  
+   - Apache Tiles 기반 JSP View 설계  
+   - MyBatis와 JDBC 연동  
+   - Log4j를 활용한 로깅 설정  
 
-## 3. 서블릿과 JSP 비교  
+### 3. **회원 관리 기능 구현**  
+   - 로그인, 로그아웃, 세션 처리  
+   - 회원 등록 및 수정  
+   - 회원 목록 및 상세 보기 페이지 구현  
 
-| 구분            | 서블릿                                    | JSP                                           |
-|-----------------|------------------------------------------|-----------------------------------------------|
-| 역할            | 컨트롤러 / 모델                         | 뷰                                          |
-| 코딩 방식       | HTML 포함 자바 코드                      | 자바 또는 커스텀 태그(JSTL) 포함 HTML          |
-| 장점            | 성능, 이식성, MVC 활용 용이              | UI 작성 용이, 유지보수성 우수                  |
-| 단점            | 페이지 레이아웃 구현에 불편                | 무거운 로직 처리 부적합                         |
+### 4. **Spring 기반 REST API 구축**  
+   - `@RestController` 사용하여 JSON 반환  
+   - HTTP 메서드 기반 CRUD (`GET`, `POST`, `PUT`, `DELETE`)  
+   - `@RequestBody`, `@ResponseBody`, `@PathVariable` 사용법  
+   - `ResponseEntity`로 상태 코드 및 메시지 조절  
 
-## 4. MVC (모델-뷰-컨트롤러) 패턴  
-- **컨트롤러 (서블릿)**: 요청 라우팅 및 흐름 제어  
-- **모델 (DAO / 서비스 / VO)**: 비즈니스 로직 및 DB 처리  
-- **뷰 (JSP / JSTL / EL)**: 응답 결과 렌더링  
-계층 분리로 유지보수성과 협업 용이.
+### 5. **클라이언트와의 통신**  
+   - jQuery AJAX를 통한 비동기 REST 호출  
+   - JSON 데이터를 컨트롤러와 주고받는 방식  
 
-## 5. 서블릿 API 클래스 구조  
-```
-Servlet (인터페이스)
- └─ GenericServlet (추상클래스)
-     └─ HttpServlet
-```
-`HttpServlet` 주요 메서드: `doGet()`, `doPost()`, `doPut()` 등.
+### 6. **고급 설정 기능**  
+   - AspectJ를 이용한 AOP 기반 로깅 처리  
+   - Tiles를 활용한 템플릿 레이아웃 적용  
+   - 로그 출력 설정 (콘솔, 파일)  
 
-## 6. 주요 기능  
-- **서블릿 매핑**: `@WebServlet("/*")` 어노테이션 또는 `web.xml`의 `<servlet-mapping>`  
-- **필터(Filter)**: 인코딩, 인증, 로깅 전후 처리  
-- **리스너(Listener)**: 컨텍스트, 세션, 요청 생명주기 감지  
-- **세션 & 쿠키**: 로그인, 장바구니 등 사용자 상태 유지  
-- **JSTL & EL**: JSP 스크립틀릿 제거, 조건문, 반복문, 다국어, 포맷팅 지원  
-
-## 7. Model2 (모던 MVC) 게시판 예시 흐름  
-```
-브라우저 → 컨트롤러 (/board/list.do)
-        → 서비스 → DAO (SQL) → DB
-        ← 뷰 (JSP) ← 모델 (리스트)
-```
-생성, 수정, 삭제, 답글, 페이징 등 비즈니스 로직은 서비스 계층에서 관리.
-
-## 8. 서블릿 생명주기 개요  
-```
-클래스 로드 → 인스턴스 생성
-      ↓
-   init()     (최초 1회)
-      ↓
-   service()  (요청마다)
-      ↓
-   destroy()  (언로드 시)
-```
+### 7. **RESTful API를 활용한 전체 CRUD**  
+   - 객체/리스트/맵 형태의 JSON 반환 예시  
+   - `ArticleVO`를 활용한 전체 RESTful CRUD 예제  
+   - jQuery 기반 AJAX 테스트 (`JSONTest.jsp` 활용)  
 
 </details>
